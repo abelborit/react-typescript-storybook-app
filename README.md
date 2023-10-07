@@ -128,7 +128,7 @@ También se puede probar usando la extensión Live Server de Visual Studio Code.
   Esto indica una opción o argumento que se pasa al comando "build-storybook" donde "-o" generalmente se usa para especificar la carpeta de destino donde se generará la documentación de Storybook. En este caso, la carpeta de destino se llamará "docs" en lugar de "storybook-static".
 
 - ### Solución: Error en Storybook: Failed to fetch dynamically imported module...
-  A la hora de hacer el deploy y abrir la app desde Github pages puede ocurrir un error en Storybook (Failed to fetch dynamically imported module). La aplicación falla a la hora de compilar por el formato del nombre de los archivos de js. Para corregir el error, añadir un archivo con nombre '.nojekyll' en la raíz del directorio estático generado con el build de storybook "storybook-static" que se le cambiará a "docs".
+  A la hora de hacer el deploy y abrir la app desde Github pages puede ocurrir un error en Storybook (Failed to fetch dynamically imported module). La aplicación falla a la hora de compilar por el formato del nombre de los archivos de js. Para corregir el error, añadir un archivo con nombre '.nojekyll' en la raíz del directorio estático generado con el build de storybook "storybook-static" que se le cambiará a "docs". (https://github.com/storybookjs/storybook/issues/20564)
 
 ---
 
