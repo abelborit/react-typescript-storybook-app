@@ -84,6 +84,52 @@ export const Warning: Story = {
 };
 ```
 
+## 3. Hacer el build de storybook
+
+En la terminal se colocará "npm run build-storybook" y luego automáticamente se creará una carpeta llamada "storybook-static" y esa carpeta es básicamente la aplicación como tal la cual se montará en algún servidor. Por ejemplo, si se sube a Netlify solo se utilizará la carpeta "storybook-static".
+
+Una vez hecho el build se puede desplegar por ejemplo en Netlify, npm para tenerlo como paquete, etc.
+También se puede probar usando la extensión Live Server de Visual Studio Code. Una vez instalada la extensión entonces nos vamos a la carpeta storybook-static y vamos al index.html y luego presionar click derecho y buscar la opción Open with Live Server o sino directamente presionando Go Live que está en el Visual Studio Code en la barra inferior.
+
+- ### Desplegar a github pages
+
+  Github pages tiene varias formas o carpetas que podemos usar para desplegar. Una de las carpetas por defecto que va a buscar es "docs". Entonces a la carpeta que se genera automáticamente "storybook-static" podemos cambiarle su nombre manualmente a "docs" o sino configurar el script `"build": "build-storybook -o docs"`
+
+- ### Solución: Webpack4 default - compilation:
+
+  - Si al compilar les aparece un error parecido a este:
+
+    ```js
+    info => Using default Webpack4 setup
+    0% compilingERR! TypeError: The 'compilation' argument must be an instance of Compilation
+    ERR!     at Function.getCompilationHooks
+    ```
+
+  - Hay que instalar 2 módulos:
+
+    ```js
+    npm i @storybook/builder-webpack5
+    npm i @storybook/manager-webpack5
+    ```
+
+  - Posteriormente en .storybook/main.js agregar la configuración siguiente:
+
+    ```js
+    core: {
+    builder: "webpack5",
+    }
+
+    // ref: -https://issuehunt.io/r/storybookjs/storybook/issues/13893
+    ```
+
+- ### Solución: Agregar flag para hacer build automaticamente en /docs
+
+  Para no tener que estar cambiando manualmente el directory storybook-build a docs lo que se puede hacer es personalizar el package.json y, en el script de build, dejar lo siguiente: `"build": "build-storybook -o docs"`
+  Esto indica una opción o argumento que se pasa al comando "build-storybook" donde "-o" generalmente se usa para especificar la carpeta de destino donde se generará la documentación de Storybook. En este caso, la carpeta de destino se llamará "docs" en lugar de "storybook-static".
+
+- ### Solución: Error en Storybook: Failed to fetch dynamically imported module...
+  A la hora de hacer el deploy y abrir la app desde Github pages puede ocurrir un error en Storybook (Failed to fetch dynamically imported module). La aplicación falla a la hora de compilar por el formato del nombre de los archivos de js. Para corregir el error, añadir un archivo con nombre '.nojekyll' en la raíz del directorio estático generado con el build de storybook "storybook-static" que se le cambiará a "docs".
+
 ---
 
 # React + TypeScript + Vite
