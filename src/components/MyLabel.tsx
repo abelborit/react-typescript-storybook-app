@@ -29,21 +29,26 @@ interface MyLabelProps {
    * Font color
    */
   fontColor?: string;
+  /**
+   * Background color
+   */
+  backgroundColor?: string;
 }
 
-/* si se coloca con valor por defecto quiere decir que el size es opcional */
+/* si se coloca con valor por defecto quiere decir que esa propiedad es opcional colocarla ya que tendrá un valor por defecto así se coloque o no */
 export const MyLabel = ({
   label,
   isCapitalize = false,
   size = "normal",
   color,
   fontColor,
+  backgroundColor = "transparent",
   ...props
 }: MyLabelProps) => {
   return (
     <span
       className={`${size} ${color} label`}
-      style={{ color: fontColor }}
+      style={{ color: fontColor, backgroundColor }}
       {...props}
     >
       {isCapitalize ? label.toUpperCase() : label}

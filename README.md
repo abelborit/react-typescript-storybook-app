@@ -130,6 +130,41 @@ También se puede probar usando la extensión Live Server de Visual Studio Code.
 - ### Solución: Error en Storybook: Failed to fetch dynamically imported module...
   A la hora de hacer el deploy y abrir la app desde Github pages puede ocurrir un error en Storybook (Failed to fetch dynamically imported module). La aplicación falla a la hora de compilar por el formato del nombre de los archivos de js. Para corregir el error, añadir un archivo con nombre '.nojekyll' en la raíz del directorio estático generado con el build de storybook "storybook-static" que se le cambiará a "docs". (https://github.com/storybookjs/storybook/issues/20564)
 
+## 4. Bonus: Chromatic para desplegar Storybook de forma colaborativa (https://www.chromatic.com/)
+
+Chromatic se puede integrar con nuestra aplicación de storybook para mejorar la forma en cómo otras personas pueden estar revisando, viendo y desplegando los cambios en nuestro paquete o aplicación que use storybook. Se podría pensar en usarlo cuando hay una gran o moderada cantidad de personas o un equipo de trabajo en el cual tienen muchos cambios los cuales tienen que ser revisados, aprobados o tener algún tipo de flujo antes de desplegarlo. Esta es una herramienta gratuita hasta cierto punto y también es de paga. Al momento de escoger el repositorio de github, esperar unos 10 minutos aprox para que se pueda refrescar y reconozca ese proyecto desplegago en el repo ya que algunas veces puede tomar un tiempo que aparezca.
+
+- ### Solución: Storybook 7.2.0 for React; using the @storybook/react-vite builder (7.2.0); no supported addons found
+
+  Instead of running npx chromatic --project-token=\*\*\*, we will create a new GitHub action file to deploy Storybook automatically. Create a new chromatic.yml file inside the .github/workflows folder with the following content:
+
+  ```js
+  name: "Chromatic"
+  on: push
+  jobs:
+    chromatic-deployment:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v1
+        - name: Install dependencies
+          run: npm install
+        - name: Publish to Chromatic
+          uses: chromaui/action@v1
+          with:
+            token: ${{ secrets.GITHUB_TOKEN }}
+  ```
+
+  Before pushing the new workflow file, please add the CHROMATIC_PROJECT_TOKEN secret to your repository settings. More information on how to set up this can be found here: https://www.chromatic.com/docs/github-actions
+
+  After successfully deploying our Storybook, the Chromatic page will be updated.
+
+## 5. Hacer una librería de componentes
+
+Estos posts dan algunos ejemplos:
+
+- https://medium.com/canariasjs/creando-componentes-en-react-y-publicando-en-npm-16eee85f9fba
+- https://morioh.com/a/db55793a3845/react-js-tutorial-for-beginners-or-full-course-in-9-hours
+
 ---
 
 # React + TypeScript + Vite

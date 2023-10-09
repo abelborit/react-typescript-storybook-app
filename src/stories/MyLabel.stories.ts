@@ -19,6 +19,7 @@ const meta = {
   argTypes: {
     size: { control: "inline-radio" },
     fontColor: { control: "color" },
+    backgroundColor: { control: "color" },
   },
 } satisfies Meta<typeof MyLabel>;
 export default meta;
@@ -31,7 +32,7 @@ export default meta;
 // export default meta;
 
 /* Story */
-/* para exportar esta story debemos definir un tipo */
+/* para exportar esta story debemos definir un tipo que será del tipo meta que definimos arriba */
 type Story = StoryObj<typeof meta>;
 
 /* crear las historis de tipo Story (el nombre Basic o AllCaps, etc. es por conveniencia, es según cómo mejor queremos representar la información de esta historia). Dentro de los args:{} estará la configuración inicial de cómo queremos ver el componente pero eso en la página de storybook se puede cambiar e ir probando */
@@ -65,5 +66,14 @@ export const CustomColor: Story = {
     label: "Custom Color Label",
     size: "h2",
     fontColor: "gray",
+  },
+};
+
+export const CustomBackgroundColor: Story = {
+  args: {
+    label: "Custom Background Color Label",
+    size: "h2",
+    fontColor: "white",
+    backgroundColor: "gray",
   },
 };
