@@ -420,6 +420,46 @@ Se empezará a crear un nuevo workflow entonces, entonces se hará click en la p
 
 Ya teniendo los últimos cambios entonces se empezará a configurar el main.yml. Ahora que se colocó la acción de hacer el build de forma automática, colocar otra vez el dist en el .gitignore ya que ahora se hará de forma automática por el GitHub Actions.
 
+- Si hay algún tipo de error similar a que el Semantic action no puede acceder a Github ni sube a NPM entonces colocar en el main.yml:
+
+```yml
+permissions:
+  contents: write
+```
+
+- Si hay errores con permisos al repositorio de github (si hay un error o problemas con el semantic-versioning sobre permisos): leer: https://github.com/semantic-release/semantic-release/blob/master/docs/recipes/ci-configurations/github-actions.md para agregar algunas líneas:
+
+```yml
+- uses: actions/checkout@v2
+  with:
+    fetch-depth: 0
+    persist-credentials: false
+- name: Setup Node.js
+  uses: actions/setup-node@v1
+  with:
+    node-version: 18.13.0
+```
+
+- También tener en cuenta que si se trabaja con npm entonces colocar sin el run:
+
+```yml
+- name: Install Dependencies
+  run: npm install
+
+- name: Build App
+  run: npm build
+```
+
+- Apartir del 2022 hubo cambios en GitHub Actions y en semantic-release. Hubieron cambios en "actions/checkout@v3" , "actions/setup@v3" y el node version:
+
+```yml
+- uses: actions/checkout@v3
+- name: Setup Node.js
+  uses: actions/setup-node@v3
+  with:
+    node-version: 18
+```
+
 ---
 
 # React + TypeScript + Vite
