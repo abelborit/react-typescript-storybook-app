@@ -360,6 +360,8 @@ Hasta lo anterior ya se podía crear la carpeta de distribución dist pero falta
 
 ## 4. Configuraciones para el Semantic Versioning Automático (https://www.npmjs.com/package/semantic-release)
 
+Para hacer los commit normales y tradicionales entonces no colocar las palabras clave del Semantic Versioning del feat, fix perf.
+
 Una de las cosas tediosas de trabajar con librerías es el manejo del versionamiento semántico pero la versión nos ayuda a saber si es una versión mayor, si es un parche o si es un bug fix (reparación de errores) (https://semver.org/) y con esto para saber el estado actual del paquete. Se instalará como dependencia de desarrollo `npm i -D semantic-release`
 
 Copiar estos plugins en el package.json para trabajar con Semantic Versioning
@@ -420,7 +422,7 @@ Se empezará a crear un nuevo workflow entonces, entonces se hará click en la p
 
 Ya teniendo los últimos cambios entonces se empezará a configurar el main.yml. Ahora que se colocó la acción de hacer el build de forma automática, colocar otra vez el dist en el .gitignore ya que ahora se hará de forma automática por el GitHub Actions.
 
-- Si hay algún tipo de error similar a que el Semantic action no puede acceder a Github ni sube a NPM entonces colocar en el main.yml:
+- Si hay algún tipo de error similar a que el Semantic action no puede acceder a Github o algo refereido a hacer al push o no sube a NPM entonces colocar en el main.yml:
 
 ```yml
 permissions:
@@ -459,6 +461,18 @@ permissions:
   with:
     node-version: 18
 ```
+
+- Tener en cuenta que en el package.json la versión sigue como la inicial, es decir, está tal cual creamos el proyecto, para tener la última versión para futuros release entonces se tendría que realizar un pull luego de haber hecho el push al repositorio.
+
+- Otro posible problema puede ser al usar css module (.module.css) hay que recordar que estos se importan como si fuera una librería como las que usamos siempre. Entonces se puede crear un archivo de declaración de TypeScript (declaration.d.ts) que solo va a servir para que cuando tengamos módulos de css el storybook solo se enfoque en utilizarlos:
+
+  ```ts
+  declare module "*.css";
+  ```
+
+  También lo que se puede usar para aumentar la compatibilidad y dependiendo qué se esté haciendo es instalar sass, sass-loader, etc. Y ver en dónde se colocará, es decir, si como devDependencies o como dependencies.
+
+- Para aumentar un poco más la compatibilidad de nuestros componentes se tendría que exportarlos por default también.
 
 ---
 
