@@ -167,6 +167,236 @@ Estos posts dan algunos ejemplos:
 
 ---
 
+# GitHub Actions + Semantic Versioning + Automatic NPM Deploy + Storybook
+
+Ya teniendo el proyecto de storybook entonces lo usaremos para subirlo a NPM pero hay ciertas configuraciones que se tienen que hacer. Subirlo manualmente es tedioso porque hay que tener en cuenta varios factores por ejemplo: Subirlo a GitHub para el respaldo, tener en cuenta que podríamos subir el versionamiento, después que esa misma versión la tenga el paquete en NPM y así más configuraciones. Para realizar eso entonces es mejor usar GitHub Actions lo que nos facilitará haciendo un trabajo automático. El objetivo es que cuando se haga el push o aceptar las PR de otros desarrolladores entonces también se tendrá una analizador de commits y según el commit se haga una u otra acción, por ejemplo un fix para aumentar la versión de patch, un feat para aumentar la versión minor y un breaking change para aumentar la versión major.
+
+Se realizará lo siguiente:
+
+- Tomar nuestros componentes probados con Storybook
+- Generar los archivos de definición de TypeScript
+- Generar el build de producción
+- Crear una acción en Github actions para crear el versionamiento semántico
+- Usar el versionamiento semantico para publicar la version del paquete
+- Publicar el paquete en NPM
+- Actualizar paquete
+- Consumir el paquete en aplicaciones externas.
+
+## 1. Configuraciones que serán visibles cuando se despliegue el paquete a NPM
+
+En el package.json se tiene que tener un nombre único y el private pasarlo a false o borrar la propiedad porque si se deja private en true entonces no va a llegar a NPM aunque se tenga toda la configuración hecha. Se agregarán algunas configuraciones adicionales como la licencia, typings (porque se está usando TypeScript). Cuando se crea un paquete de NPM lo que se comparte es la carpeta dist que la crearemos de forma automática. Los typings es de dónde va a saber TypeScript la definición de mis componentes la cual estará en la carpeta dist en el index.d.ts (dist/index.d.ts) donde los archivos .d.ts son los archivos de definición de TypeScript. Esos typings no serían necesarios si no se usara TypeScript. Tambien colocar el main que será la propiedad que servirá a otras aplicaciones que importen nuestro paquete para decirle cuál es el punto de entrada de nuestro paquete en el cual se exporta todo lo necesario. Luego colocar repository para que aparezca la URL y otras personas puedan revisar el repositorio. También se tendrá que hacer una configuración adicional para la integración de GitHub Actions entonces se coloca release y branches para hacer el despliegue de las ramas en este caso el main ya que es la rama principal de nuestro proyecto (pueden ser otra si hay para producción, etc). Se agregará files ya que son los archivos que se van a desplegar.
+
+En los scripts hay que colocar un build el cual se encargará de crear la carpeta dist, los archivos de definición de TypeScript entre otras cosas.
+
+```js
+{
+  "name": "react-typescript-storybook-app",
+  "private": false,
+  ...
+  "license": "MIT",
+  "typings": "dist/index.d.ts",
+  "main": "dist/index.js",
+  "repository": {
+    "url": "https://github.com/abelborit/react-typescript-storybook-app",
+    "type": "git"
+  },
+  "release": {
+    "branches": [
+      "main"
+    ]
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+
+  "scripts": {
+      ...
+  },
+}
+```
+
+## 2. Configuraciones para TypeScript
+
+Se tiene que corroborar que se tenga TypeScript de forma global colocando en la terminal el comando `tsc --version` y con eso nos debería salir la versión y sino entonces instalar de manera global TypeScript usando la terminal como administrador y colocando `npm i -g typescript`. Luego intentar de nuevo en la terminal el comando `tsc --version` y si sale:
+
+```
+tsc : No se puede cargar el archivo C:\Program Files\nodejs\tsc.ps1 porque la ejecución de scripts está deshabilitada
+en este sistema. Para obtener más información, consulta el tema about_Execution_Policies en
+https:/go.microsoft.com/fwlink/?LinkID=135170.
+En línea: 1 Carácter: 1
++ tsc --version
++ ~~~
+    + CategoryInfo          : SecurityError: (:) [], PSSecurityException
+    + FullyQualifiedErrorId : UnauthorizedAccess
+```
+
+Entonces primero se coloca en la terminal `Get-ExecutionPolicy` y si nos sale `Restricted` entonces colocar en la terminal `Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy Unrestricted` para cambiar el valor a `Unrestricted` (probar nuevamente `Get-ExecutionPolicy` para corroborar) y con eso ya estaría funcionando correctamente todo. Probar de nuevo el comando `tsc --version`.
+
+Como se está trabajando con TypeScript entonces TypeScript podría ser quien se encargue de hacer toda las transpilación y generación de la carpeta dist. En el archivo tsconfig.json asegurarse primero que haya el include y que tenga el src (esto ya tendría que venir por defecto al crear el proyecto). Luego en compilerOptions se añade la propiedad outDir que será el directorio en el cual queremos la salida o el producto que en este caso será la carpeta dist. Colocar también declaration en true porque se quieren las declaraciones. Se puede cambiar el module de "ESNext" a "CommonJS" ya que ese es un standard. Cambiar el noEmit a false.
+
+```js
+{
+  "compilerOptions": {
+    "outDir": "dist",
+    ...
+    "declaration": true,
+    "module": "CommonJS",
+    ...
+    "noEmit": false,
+    ...
+  },
+
+  "include": ["src"],
+
+}
+```
+
+Luego de terminar lo anterior, colocar en la terminal del proyecto `tsc` (TypeScript Compiler) y eso leerá el archivo de configuración de TypeScript (tsconfig.json) y va a transpilar todo el código (lo que está incluído en "include": ["src"]). Esto dará algunos errores esperados como por ejemplo:
+
+```
+src/stories/Button.stories.ts:6:7 - error TS4023: Exported variable 'meta' has or is using name 'ButtonProps' from external module "C:/ruta del proyecto/react-advanced-projects/react-typescript-storybook-app/src/stories/Button" but cannot be named.
+```
+
+Para esto entonces se debería ir a cada uno de los archivos que dan errores y por ejemplo para los problemas en stories.ts entonces en sus archivos .tsx colocar el export en la interface ya que al hacer la transpilación entonces se están importando en otros archivos y por eso da error. Después de solucionar los problemas se tiene que borrar la carpeta dist que se generó y colocar de nuevo en la terminal `tsc`.
+En este caso da error también el tsconfig.json:
+
+```
+$ tsc
+tsconfig.json:12:25 - error TS5095: Option 'bundler' can only be used when 'module' is set to 'es2015' or later.
+
+12     "moduleResolution": "bundler",
+                           ~~~~~~~~~
+
+tsconfig.json:13:35 - error TS5096: Option 'allowImportingTsExtensions' can only be used when either 'noEmit' or 'emitDeclarationOnly' is set.
+
+13     "allowImportingTsExtensions": true,
+                                     ~~~~
+
+
+Found 2 errors in the same file, starting at: tsconfig.json:12
+```
+
+Para solucionar esto entonces colocar:
+
+```js
+{
+  "compilerOptions": {
+    "outDir": "dist",
+    ...
+    "declaration": true,
+    "module": "ES2015",
+    ...
+    // "allowImportingTsExtensions": true,
+    "noEmit": false,
+    ...
+  },
+
+  "include": ["src"],
+
+}
+```
+
+Cuando se comenta "allowImportingTsExtensions": true, entonces revisar todos los archivos y ver las importaciones con extensión .tsx o .ts y quitarlas como en el caso del archivo main.tsx de la importación `import App from './App.tsx'` que da un error `An import path can only end with a '.tsx' extension when 'allowImportingTsExtensions' is enabled.` a `import App from "./App";` sin la extensión.
+
+Cuando ya se tenga la carpeta dist creada (manualmente por el momento, luego se creará automáticamente) vemos que en la carpeta dist no están los assets ni los archivos .css ya que TypeScript solo se encarga de trabajar con los archivos de TypeScript propiamente (.ts o .tsx) y eso se podría solucionar manualmente copiando y pegando los archivos en el dist y eso podría funcionar hasta cierto punto porque habrán errores ya que los archivos de TypeScript no lograrán encontrar sus archivos de .css respectivos.
+
+### 2.1 Configuración para TypeScript de este proyecto:
+
+- "outDir": "dist": Esta opción especifica la carpeta de salida donde se generarán los archivos compilados. En este caso, los archivos JavaScript compilados se colocarán en la carpeta "dist".
+
+- "target": "ES2020": Define la versión de ECMAScript a la que se dirigirá la compilación. En este caso, se está apuntando a ECMAScript 2020 (ES2020), lo que significa que el código TypeScript se compilará para ejecutarse en un entorno que admite las características de ES2020.
+
+- "useDefineForClassFields": true: Habilita el uso de la palabra clave "define" para campos de clase en TypeScript. Esto es útil cuando trabajas con propiedades de clase públicas en la sintaxis de clase de TypeScript.
+
+- "lib": ["ES2020", "DOM", "DOM.Iterable"]: Especifica las bibliotecas de TypeScript que estarán disponibles durante la compilación. En este caso, se incluyen las bibliotecas ES2020, DOM y DOM.Iterable, lo que significa que se pueden utilizar las características correspondientes en tu código TypeScript.
+
+- "declaration": true: Cuando está configurado en "true", esto indica que se deben generar archivos de declaración (.d.ts) junto con los archivos JavaScript compilados. Los archivos de declaración son útiles para proporcionar información de tipo a otros desarrolladores que consumen tu código.
+
+- "module": "ES2015": Define la forma en que se organizarán los módulos en el código compilado. Aquí, se está utilizando el sistema de módulos ES2015.
+
+- "skipLibCheck": true: Cuando está configurado en "true", TypeScript omitirá la comprobación de las bibliotecas de definición de tipo (archivos .d.ts) al compilar. Esto puede acelerar el proceso de compilación si tienes muchas bibliotecas de definición de tipo en tu proyecto.
+
+- "moduleResolution": "bundler": Esta opción establece el método de resolución de módulos en modo "bundler". Indica que se utilizará una resolución de módulos específica para empaquetadores (bundlers) como Webpack o Rollup.
+
+- "allowImportingTsExtensions": true: Permite la importación de módulos TypeScript (.ts o .tsx) sin especificar la extensión del archivo.
+
+- "resolveJsonModule": true: Habilita la capacidad de importar archivos JSON directamente en tu código TypeScript.
+
+- "isolatedModules": true: Cuando está configurado en "true", TypeScript trata cada archivo como un módulo independiente. Esto puede mejorar la eficiencia de la compilación en algunos casos.
+
+- "noEmit": false: Esta opción deshabilita la generación de archivos JavaScript de salida. Cuando está configurado en "false" (como en este caso), se generarán archivos JavaScript junto con archivos de declaración.
+
+- "jsx": "react-jsx": Esta opción configura el compilador TypeScript para reconocer y procesar la sintaxis JSX utilizada en aplicaciones de React.
+
+- "strict": true: Habilita un conjunto de opciones estrictas de TypeScript para mejorar la seguridad y la calidad del código.
+
+- Opciones de linting (control de calidad del código):
+
+  - "noUnusedLocals": true: Advierte sobre variables locales no utilizadas.
+  - "noUnusedParameters": true: Advierte sobre parámetros de funciones no utilizados.
+  - "noFallthroughCasesInSwitch": true: Detecta casos en los que puede faltar una sentencia "break" en una instrucción "switch".
+
+- "include": ["src"]: Especifica qué archivos o carpetas deben incluirse en el proceso de compilación. En este caso, se incluirán los archivos dentro de la carpeta "src".
+
+- "references": [{ "path": "./tsconfig.node.json" }]: Esto se usa para hacer referencia a otro archivo de configuración TypeScript ("tsconfig.node.json") en tu proyecto. Puede ser útil cuando tienes configuraciones específicas para diferentes partes de tu proyecto.
+
+## 3. Configuraciones en el script del package.json
+
+Hasta lo anterior ya se podía crear la carpeta de distribución dist pero faltan los archivos .css y los assets. Aquí se realizará ciertas configuraciones para que si existe la carpeta dist entonces eliminarla para poder colocar la nueva pero `tsc` que es el TypeScript Compilar no podría efectuar la eliminación o copia de archivos ya que solo se enfoca en los archivos de TypeScript como tal, entonces se instalarán librerías de terceros para eliminar (https://www.npmjs.com/package/rimraf) y para copiar(https://www.npmjs.com/package/copyfiles). Se creará la propiedad `"clean": "rimraf dist/"` para limpiar la carpeta de distribución dist. Ahora necesitamos mover los archivos estáticos que no terminan siendo enviados al dist (es decir los que no terminan siendo transpilados de TypeScript a JavaScript) se creará la propiedad `"copy-files": "copyfiles -u 1 src/**/*.css dist/"` para copiar los archivos y mandarlos al dist. A todo lo anterior se podría colocar un script para crear los archivos minificados cosa que podría ayudar al performance del paquete.
+
+```js
+  "scripts": {
+    "dev": "npm run storybook",
+    "build": "npm run clean && tsc",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "preview": "vite preview",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build",
+    "clean": "rimraf dist/",
+    "copy-files": "copyfiles -u 1 src/**/*.css dist/"
+  },
+```
+
+## 4. Configuraciones para el Semantic Versioning Automático (https://www.npmjs.com/package/semantic-release)
+
+Una de las cosas tediosas de trabajar con librerías es el manejo del versionamiento semántico pero la versión nos ayuda a saber si es una versión mayor, si es un parche o si es un bug fix (reparación de errores) (https://semver.org/) y con esto para saber el estado actual del paquete. Se instalará como dependencia de desarrollo `npm i -D semantic-release`
+
+Copiar estos plugins en el package.json para trabajar con Semantic Versioning
+
+- Según el mensaje del commit realizará el release automático de la versión Major, Minor o Patch (@semantic-release/commit-analyzer)
+- Generar los release notes (@semantic-release/release-notes-generator)
+- Generar el changelog de forma automática (@semantic-release/changelog)
+- Para las integraciones con GitHub (@semantic-release/github)
+- Realizar despliegues automáticas a NPM (@semantic-release/npm)
+- Para trabajar con Git y GitHub (@semantic-release/git)
+
+```js
+...
+"plugins": [
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    "@semantic-release/changelog",
+    "@semantic-release/github",
+    "@semantic-release/npm",
+    "@semantic-release/git"
+],
+```
+
+Una vez realizado lo anterior, como ya lo tenemos instalado, en teoría ya lo podríamos usar para que cree el versionamiento semántico pero hay que conectarlo de cierta manera para que cuando se despliegue trabaje y cree el versionamiento y nos cree el release en el repositorio y para hacer eso vamos a usar los GitHub Actions. Según la siguiente tabla sacada de la librería semantic-release (https://www.npmjs.com/package/semantic-release) tenemos que colocar cierto tipo de mensajes para realizar el versionamiento.
+
+| Commit message                                                                                                                                                                    | Release type                                                                                           |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| fix(pencil): stop graphite breaking when too much pressure applied                                                                                                                | ~~Patch~~ Fix Release                                                                                  |
+| feat(pencil): add 'graphiteWidth' option                                                                                                                                          | ~~Minor~~ Feature Release                                                                              |
+| perf(pencil): remove graphiteWidth option. BREAKING CHANGE: The graphiteWidth option has been removed. The default graphite width of 10mm is always used for performance reasons. | ~~Major~~ Breaking Release. (Note that the BREAKING CHANGE: token must be in the footer of the commit) |
+
+Cabe mencionar que la carpeta dist sí la vamos a necesitar porque eso es lo que se termina descargando por las demás personas y eso tendría que ser parte del repositorio. Para eso entonces ir la .gitignore y sacar todo lo del dist.
+
+Para hacer el primer commit usando el semantic versioning usaremos `git commit -m "feat: Updated package.json configurations. Updated tsconfig.json configurations. Fixed stories errors because tsconfig.json configurations. Installed new dependencies. Created new dist folder"`
+
+---
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.

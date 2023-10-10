@@ -8,7 +8,7 @@ import "./MyLabel.css";
 // }
 
 /* se hace de esta forma para colocar como una documentanción y tener descripciones de cada propiedad. Algo importante es que, añadiendo a lo que está el comentario en MyLabel.stories.ts de bajar el servidor y volverlo a levantar es que en la versión actual de storybook cuando se hacen cambios en las interfaces no se ven reflejadas automáticamente en la parte física que es la página. Una idea de que esto no sucede es que eso de las interfaces no realizan un re-render en general o que vite no reconoce ese cambio en la pantalla y por eso no realiza un re-renderizado porque no hay diferencias y por eso entonces se baja el sevidor y se levanta de nuevo */
-interface MyLabelProps {
+export interface MyLabelProps {
   /**
    * Text to show
    */
