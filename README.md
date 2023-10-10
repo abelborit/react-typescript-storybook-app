@@ -18,6 +18,8 @@ Se estarán implementando las bases y temas adicionales de Storybook. Para insta
 - Desplegar documentación a diferentes sitios
 - Bonus: Chromatic para desplegar Storybook de forma colaborativa
 
+Para la estructura de carpetas se deberá eliminar del src los archivos App.css, App.tsx, index.css, main.tsx ya que este proyecto es para poder usar storybook entonces al hacer npm run dev correrá la página de storybook y no el típico proyecto de React. Luego crear un archivo index.tsx y exportar todos los componentes que vamos a usar.
+
 ---
 
 ## 2. How to write a story

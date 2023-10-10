@@ -4,8 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "license": "MIT",
-  "typings": "dist/main.d.ts",
-  "main": "dist/main.js",
+  "typings": "dist/index.d.ts",
+  "main": "dist/index.js",
   "repository": {
     "url": "https://github.com/abelborit/react-typescript-storybook-app",
     "type": "git"
