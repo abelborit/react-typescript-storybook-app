@@ -33,7 +33,7 @@ jobs:
       # After installing dependencies, you can run the package.json scripts
       # Run the build action to create the project for the Node server side
       - name: Build App
-        run: npm build
+        run: npm run build
 
       # After build run the semantic release action using the two env
       - name: Semantic Release
