@@ -393,7 +393,32 @@ Una vez realizado lo anterior, como ya lo tenemos instalado, en teoría ya lo po
 
 Cabe mencionar que la carpeta dist sí la vamos a necesitar porque eso es lo que se termina descargando por las demás personas y eso tendría que ser parte del repositorio. Para eso entonces ir la .gitignore y sacar todo lo del dist.
 
-Para hacer el primer commit usando el semantic versioning usaremos `git commit -m "feat: Updated package.json configurations. Updated tsconfig.json configurations. Fixed stories errors because tsconfig.json configurations. Installed new dependencies. Created new dist folder"`
+Para hacer el primer commit usando el semantic versioning usaremos `git commit -m "feat: Updated package.json configurations. Updated tsconfig.json configurations. Fixed stories errors because tsconfig.json configurations. Installed new dependencies. Created new dist folder"` Pero con eso no esperemos que ya tengamos el release en el repositorio, el semantic versioning ya es parte de nuestro proyecto pero ahora pasaremos a configurar los github actions para que este analice cuando se recibe un nuevo push y cuando se reciba en el repositorio entonces github actions disparará la llamada al semantic versioning.
+
+Ahora, antes de hacer que el versionamiento semántico se configure de manera automática y que nuestro paquete que subimos a github se despliegue automáticamente en NPM, tenemos que usar dos tokens de acceso.
+
+- Primer token de acceso en GitHub: Ir al ícono de nuestro usario -> Settings -> Developer settings -> Personal access token -> Tokens (classic) -> Generate new token -> Generate new token (classic) -> Colocar contraseña (si es que pide). Luego en las notas colocar algo que tenga sentido y referencia a lo que queremos hacer, por ejemplo: MyStorybook-Components-Semantic-Versioning.
+
+Github recomienda que siempre tenga un tiempo para que expire, esto con la finalidad de que si el token se ve comprometido entonces el token va a dejar de existir en una X cantidad de tiempo (en este caso práctico colocar 30 días). Para los accesos o el alcance de este token se puede dar a toda la cuenta de github pero solo se colocará el acceso a los repositorios. Y finalmente presionar el botón Generate token y nos dará un token, ese token tenerlo a la mano porque cuando se salga de la pantalla no volveremos a ver ese token. Ahora hace falta el token que me permite publicar repositorios (en este caso paquetes) de manera automática a NPM.
+
+- Segundo token de acceso en NPM: Ir al ícono de nuestro usario -> Access Tokens -> Generate New Token -> Classic Token -> Colocar contraseña (si es que pide) -> En las notas colocar algo que tenga sentido y referencia a lo que queremos hacer, por ejemplo: MyStorybook-Components-Semantic-Versioning -> Option: Publish -> Generate Token
+
+Con NPM es igual que en GitHub de que ese token tenerlo a la mano porque cuando se salga de la pantalla no volveremos a ver ese token. Luego el token deberá tener acceso a publicar (Publish) y tener cuidado ya que cualquier persona con este token podrá publicar paquetes como si fuéramos nosotros (si es un equipo de trabajo u organización y hay un equipo que estará tocando ese paquete constantemente entonces no hay problema), entonces tener cuidado ya que personas que tengan acceso al repositorio podrían saber de este token.
+
+Ya teniendo los tokens de acceso de GitHub y NPM ya se pueden usar para hacer los despliegues automáticos con GitHub Actions. entonces ahora los tokens los vamos a utilizar como si fueran variables de entorno que van a funcionar en GitHub Actions.
+
+GH_TOKEN = token de github
+NPM_TOKEN = token de NPm
+
+- Pasos para GitHub Actions: Estando en el respositorio del proyecto -> Settings del repositorio -> Secrets and variables (funcionan como si fueran las variables de entorno) -> Actions -> New repository secret -> Colocar el nombre y su token -> Add secret
+
+## 5. Configuraciones para los GitHub Actions (Crear versionamiento y despliegue de forma automática)
+
+GitHub Actions es una herramienta poderosa que ofrece GitHub (que es de Microsoft) para realizar tareas automáticas y para esto hay muchas configuraciones y hay algunas que ya nos ofrencen al entrar a New Workflow que son tareas automáticas que van a suceder cuando hay algún cambio en el repositorio. En este caso vamos a configurar las GitHub Actions para que cada vez que se haga un push en el repositorio, automáticamente el semantic versioning configure que es una nueva versión ya sea major, minor o patch en la parte de los releas y que también haga el deploy automáticamente a NPM.
+
+Se empezará a crear un nuevo workflow entonces, entonces se hará click en la pestaña Actions y luego en New Workflow y después en **set up a workflow yourself** y por defecto te manda a una pantalla del repositorio y entra a la carpeta .github/workflows/main.yml donde main.yml es el archivo que se creará y workflows puede ser que cambie, puede ser que sea entrando así en los directorios y sino de frente en .github. Estos archivos .yml son archivos donde la separación y la tabulación son importantes. Puede que el archivo main.yml tenga o no una configuración que ya la agregaremos o cambiaremos después, pero por ahora hacer click en `Commit changes...` y agregar el commit desde el repositorio de github. Luego ya en Visual Studio Code hacer un git pull para traer los cambios del repositorio y ver si hay que resolver conflictos o no.
+
+Ya teniendo los últimos cambios entonces se empezará a configurar el main.yml. Ahora que se colocó la acción de hacer el build de forma automática, colocar otra vez el dist en el .gitignore ya que ahora se hará de forma automática por el GitHub Actions.
 
 ---
 
