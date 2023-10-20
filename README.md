@@ -218,6 +218,33 @@ En los scripts hay que colocar un build el cual se encargará de crear la carpet
 }
 ```
 
+- Actualización:
+
+  - En el package.json se hará una actualización en cuanto a las dependencies, devDependencies y peerDependencies. En dependencies se deja el objeto vacío ya que si la persona ya tiene react en su proyecto entonces sería innecesario que cuando instale este paquete instale nuevamente "react" y "react-dom" y por eso solo se instala como devDependencies porque entonces no serán dependencias que formarán parte del build final de mi aplicación/paquete. Si se necesita una dependencia para el proyecto entonces colocarlas en dependencies ya que cuando se instale el paquete en otro proyecto también descargará esas dependencias pero en este caso como es solo "react" y "react-dom" entonces se podría mover a devDependencies.
+
+    ```js
+    {
+      ...
+
+      "files": [
+        "dist",
+      ],
+
+      "dependencies": {},
+
+      "devDependencies": {
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        ...
+      },
+
+      "peerDependencies": {
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0"
+      },
+    }
+    ```
+
 ## 2. Configuraciones para TypeScript
 
 Se tiene que corroborar que se tenga TypeScript de forma global colocando en la terminal el comando `tsc --version` y con eso nos debería salir la versión y sino entonces instalar de manera global TypeScript usando la terminal como administrador y colocando `npm i -g typescript`. Luego intentar de nuevo en la terminal el comando `tsc --version` y si sale:
@@ -303,6 +330,33 @@ Cuando se comenta "allowImportingTsExtensions": true, entonces revisar todos los
 
 Cuando ya se tenga la carpeta dist creada (manualmente por el momento, luego se creará automáticamente) vemos que en la carpeta dist no están los assets ni los archivos .css ya que TypeScript solo se encarga de trabajar con los archivos de TypeScript propiamente (.ts o .tsx) y eso se podría solucionar manualmente copiando y pegando los archivos en el dist y eso podría funcionar hasta cierto punto porque habrán errores ya que los archivos de TypeScript no lograrán encontrar sus archivos de .css respectivos.
 
+- Actualización:
+
+  - En el tsconfig.json se hará una actualización en cuanto a su configuración:
+
+  ```js
+  {
+    "compilerOptions": {
+      "outDir": "dist",
+      ...
+      "declaration": true,
+      "module": "ESNext",
+      ...
+      "allowJs": true,
+      "emitDeclarationOnly": false,
+      "declarationMap": false,
+      ...
+      "allowImportingTsExtensions": false,
+      ...
+      "noEmit": false,
+      ...
+    },
+
+    "include": ["src"],
+
+  }
+  ```
+
 ### 2.1 Configuración para TypeScript de este proyecto:
 
 - "outDir": "dist": Esta opción especifica la carpeta de salida donde se generarán los archivos compilados. En este caso, los archivos JavaScript compilados se colocarán en la carpeta "dist".
@@ -350,7 +404,7 @@ Hasta lo anterior ya se podía crear la carpeta de distribución dist pero falta
 ```js
   "scripts": {
     "dev": "npm run storybook",
-    "build": "npm run clean && tsc",
+    "build": "npm run clean && tsc && npm run copy-files",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "storybook": "storybook dev -p 6006",
@@ -412,7 +466,7 @@ Con NPM es igual que en GitHub de que ese token tenerlo a la mano porque cuando 
 Ya teniendo los tokens de acceso de GitHub y NPM ya se pueden usar para hacer los despliegues automáticos con GitHub Actions. entonces ahora los tokens los vamos a utilizar como si fueran variables de entorno que van a funcionar en GitHub Actions.
 
 GH_TOKEN = token de github
-NPM_TOKEN = token de NPm
+NPM_TOKEN = token de NPM
 
 - Pasos para GitHub Actions: Estando en el respositorio del proyecto -> Settings del repositorio -> Secrets and variables (funcionan como si fueran las variables de entorno) -> Actions -> New repository secret -> Colocar el nombre y su token -> Add secret
 
