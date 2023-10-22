@@ -221,6 +221,7 @@ En los scripts hay que colocar un build el cual se encargará de crear la carpet
 - Actualización:
 
   - En el package.json se hará una actualización en cuanto a las dependencies, devDependencies y peerDependencies. En dependencies se deja el objeto vacío ya que si la persona ya tiene react en su proyecto entonces sería innecesario que cuando instale este paquete instale nuevamente "react" y "react-dom" y por eso solo se instala como devDependencies porque entonces no serán dependencias que formarán parte del build final de mi aplicación/paquete. Si se necesita una dependencia para el proyecto entonces colocarlas en dependencies ya que cuando se instale el paquete en otro proyecto también descargará esas dependencias pero en este caso como es solo "react" y "react-dom" entonces se podría mover a devDependencies.
+  - En las peerDependencies se coloca desde la 16.8.0 que es cuando ingresaron los hooks, luego acepta también la versión desde la 17.0.0 y desde la versión 18.0.0.
 
     ```js
     {
@@ -239,8 +240,8 @@ En los scripts hay que colocar un build el cual se encargará de crear la carpet
       },
 
       "peerDependencies": {
-        "react": "^18.2.0",
-        "react-dom": "^18.2.0"
+        "react": "^16.8.0 || ^17.0.0 || ^18.0.0",
+        "react-dom": "^16.8.0 || ^17.0.0 || ^18.0.0"
       },
     }
     ```
@@ -529,6 +530,59 @@ permissions:
   También lo que se puede usar para aumentar la compatibilidad y dependiendo qué se esté haciendo es instalar sass, sass-loader, etc. Y ver en dónde se colocará, es decir, si como devDependencies o como dependencies.
 
 - Para aumentar un poco más la compatibilidad de nuestros componentes se tendría que exportarlos por default también.
+
+## 6. Configuraciones para subir el paquete a NPM y actualizar los release (https://www.npmjs.com/package/np)
+
+Se usará como alternativa a "np" (https://www.npmjs.com/package/np) instalándolo en el proyecto como una dependencia de desarrollo `npm i -D np`, luego crearemos un nuevo script en el package.json pero tener en cuenta que no se puede colocar el nombre "publish" porque ya es algo que npm lo maneja para publicar el paquete, entonces pueden haber conflictos o errores al usar el comando, por eso se colocará "push:npm":
+
+```js
+  "scripts": {
+    "dev": "npm run storybook",
+    "build": "npm run clean && tsc && npm run copy-files",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "preview": "vite preview",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build",
+    "clean": "rimraf dist/",
+    "copy-files": "copyfiles -u 1 src/**/*.css dist/"
+    "push:npm": "np"
+  },
+```
+
+Pero aquí puede ser que nos de un error al usar el `npm run push:npm` que tiene que ver con los `engines.node` en el "package.json" y se tiene que colocar en el package.json. Cualquier engines de node está bien, se puede colocar una versión en específica que esperamos que nuestra aplicación use
+
+```js
+  "devDependencies": {
+   ...
+  },
+  "peerDependencies": {
+   ...
+  },
+  "engines": {
+    "node": ">=12.0.0"
+  },
+```
+
+Luego, al usar el `npm run push:npm` nuevamente, dará otro error, ya que nos pedirá que primero hagamos un commit de los cambios realizados. Una vez hecho el commit ejecutamos de nuevo `npm run push:npm` pero nos dará un nuevo error que tiene que ver con el testing ya que si queremos subir como paquete entonces los demás desarrolladores al querer usarlo van a suponer que fue previamente testeado. Se pueden ir creando los test pero como en este caso solo es un ejemplo práctico se colocará un nuevo script:
+
+```js
+  "scripts": {
+    "dev": "npm run storybook",
+    "build": "npm run clean && tsc && npm run copy-files",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "preview": "vite preview",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build",
+    "clean": "rimraf dist/",
+    "copy-files": "copyfiles -u 1 src/**/*.css dist/"
+    "push:npm": "np"
+    "test": "echo 'Test example...'"
+  },
+```
+
+Ahora con el test colocado se haría un nuevo commit para tener los últimos cambios para correr nuevamente `npm run push:npm` y se abrirá automáticamente el repositorio de GitHub y colocará el release tag que se colocó previamente, también colocará los commit respectivos y con eso ya terminaría el flujo.
+
+NOTA: Se puede colocar primero toda la configuración respectiva y subirlo en un solo commit o sino ir subiendo paso a paso como en el ejemplo.
 
 ---
 

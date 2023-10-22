@@ -57,8 +57,8 @@
     "vite": "^4.4.5"
   },
   "peerDependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react": "^16.8.0 || ^17.0.0 || ^18.0.0",
+    "react-dom": "^16.8.0 || ^17.0.0 || ^18.0.0"
   },
   "plugins": [
     "@semantic-release/commit-analyzer",
